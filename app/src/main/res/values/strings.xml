@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Connectly</string>
+
+    <string name="session_offline">Offline</string>
+    <string name="session_impossible">Waiting for second peer</string>
+    <string name="session_ready">Start Call</string>
+    <string name="session_creating">Creating session …</string>
+    <string name="session_accept">Accept Call</string>
+    <string name="session_active">Session Active</string>
+
+    <string name="button_start_session">Start session</string>
+    <string name="button_join_session">Join session</string>
+
+    <string name="button_end_session">End Session</string>
+    <string name="call_ended">Call ended</string>
+
+</resources>
