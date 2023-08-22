@@ -1,5 +1,6 @@
 package com.amrg.connectly.webrtc
 
+import com.amrg.connectly.shared.Constants.SIGNALING_SERVER_IP_ADDRESS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,14 +18,14 @@ import okhttp3.WebSocketListener
 class SignalingClient {
 
     companion object {
-        const val SIGNALING_SERVER_IP_ADDRESS = "wss://signaling-server-89v1.onrender.com/rtc"
+        const val RTC_ADDRESS = "wss://$SIGNALING_SERVER_IP_ADDRESS/rtc"
     }
 
     private val signalingScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val client = OkHttpClient()
     private val request = Request.Builder()
-        .url(SIGNALING_SERVER_IP_ADDRESS)
+        .url(RTC_ADDRESS)
         .build()
 
     private val ws = client.newWebSocket(request, SignalingWebSocketListener())

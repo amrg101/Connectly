@@ -284,7 +284,7 @@ class WebRtcSessionManager(
         }
         val supportedResolution = cameraEnumerator.getSupportedFormats(frontCamera) ?: emptyList()
         return supportedResolution.firstOrNull {
-            it.width == 720 || it.width == 480 || it.width == 360
+            it.width == 1080 || it.width == 720 || it.width == 480 || it.width == 360
         } ?: error("There is no matched resolution!")
     }
 
