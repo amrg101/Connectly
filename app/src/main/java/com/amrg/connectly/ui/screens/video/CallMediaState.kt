@@ -4,3 +4,8 @@ data class CallMediaState(
     val isCameraEnabled: Boolean = true,
     val isMicrophoneEnabled: Boolean = true
 )
+
+enum class CameraState {
+    ENABLED,
+    DISABLED
+}

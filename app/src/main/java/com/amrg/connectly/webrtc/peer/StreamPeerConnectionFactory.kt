@@ -25,7 +25,7 @@ class StreamPeerConnectionFactory(
     private val context: Context
 ) {
 
-    val eglBaseContext by lazy {
+    val eglBaseContext: EglBase.Context by lazy {
         EglBase.create().eglBaseContext
     }
     private val videoDecoderFactory by lazy {
@@ -103,6 +103,7 @@ class StreamPeerConnectionFactory(
         onIceCandidate: ((IceCandidate, StreamPeerType) -> Unit)? = null,
         onVideoTrack: ((RtpTransceiver?) -> Unit)? = null,
         onNegotiationNeeded: ((StreamPeerConnection, StreamPeerType) -> Unit)? = null,
+        onMessage: ((Message) -> Unit)? = null,
     ): StreamPeerConnection {
         val peerConnection = StreamPeerConnection(
             coroutineScope = coroutineScope,
@@ -111,7 +112,8 @@ class StreamPeerConnectionFactory(
             onStreamAdded = onStreamAdded,
             onIceCandidate = onIceCandidate,
             onVideoTrack = onVideoTrack,
-            onNegotiationNeeded = onNegotiationNeeded
+            onNegotiationNeeded = onNegotiationNeeded,
+            onMessage = onMessage
         )
         val connection = requireNotNull(
             factory.createPeerConnection(configuration, peerConnection)

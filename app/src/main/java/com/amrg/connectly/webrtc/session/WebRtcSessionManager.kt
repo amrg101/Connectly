@@ -10,6 +10,7 @@ import android.os.Build
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.core.content.getSystemService
+import com.amrg.connectly.ui.screens.video.CameraState
 import com.amrg.connectly.webrtc.SignalingClient
 import com.amrg.connectly.webrtc.SignalingCommand
 import com.amrg.connectly.webrtc.WebRTCSessionState
@@ -21,7 +22,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.webrtc.Camera2Capturer
 import org.webrtc.Camera2Enumerator
@@ -56,6 +59,9 @@ class WebRtcSessionManager(
 
     private val _remoteVideoTrackFlow = MutableSharedFlow<VideoTrack>()
     val remoteVideoTrackFlow: SharedFlow<VideoTrack> = _remoteVideoTrackFlow
+
+    private val _remoteVideoTrackEnabledState = MutableStateFlow(true)
+    val remoteVideoTrackEnabledState: StateFlow<Boolean> = _remoteVideoTrackEnabledState
 
     private val mediaConstraints = MediaConstraints().apply {
         mandatory.addAll(
@@ -117,7 +123,7 @@ class WebRtcSessionManager(
 
     private var offer: String? = null
 
-    private val peerConnection: StreamPeerConnection by lazy {
+     val peerConnection: StreamPeerConnection by lazy {
         peerConnectionFactory.createStreamPeerConnection(
             sessionManagerScope,
             peerConnectionFactory.rtcConfig,
@@ -137,6 +143,11 @@ class WebRtcSessionManager(
                         _remoteVideoTrackFlow.emit(videoTrack)
                     }
                 }
+            },
+            onMessage = { (state, value) ->
+               when(state){
+                   CameraState::name.toString() -> handleCameraStateMessage(value)
+               }
             }
         )
     }
@@ -151,6 +162,13 @@ class WebRtcSessionManager(
                     else -> Unit
                 }
             }
+        }
+    }
+
+    private fun handleCameraStateMessage(value: String){
+        when(CameraState.valueOf(value)){
+            CameraState.ENABLED ->  _remoteVideoTrackEnabledState.value = true
+            CameraState.DISABLED ->  _remoteVideoTrackEnabledState.value = false
         }
     }
 
@@ -178,9 +196,9 @@ class WebRtcSessionManager(
 
     fun onSessionScreenReady() {
         setupAudio()
-        updateLocalVideoTrack()
         peerConnection.connection.addTrack(localVideoTrack)
         peerConnection.connection.addTrack(localAudioTrack)
+        updateLocalVideoTrack()
         sessionManagerScope.launch {
             if (offer != null) {
                 sendAnswer()
@@ -227,6 +245,9 @@ class WebRtcSessionManager(
         audioHandler.stop()
         videoCapturer.stopCapture()
         videoCapturer.dispose()
+
+        // dispose peerConnection.
+        peerConnection.dispose()
 
         // dispose signaling clients and socket.
         signalingClient.sendCommand(SignalingCommand.STATE, "${WebRTCSessionState.Impossible}")

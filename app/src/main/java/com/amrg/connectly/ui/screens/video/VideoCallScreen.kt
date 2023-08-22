@@ -56,6 +56,8 @@ fun VideoCallScreen() {
         val localVideoTrackState by sessionManager.localVideoTrackFlow.collectAsState(null)
         val localVideoTrack = localVideoTrackState
 
+        val remoteVideoTrackEnabledState =  sessionManager.remoteVideoTrackEnabledState.collectAsState()
+
         val sessionState = sessionManager.signalingClient.stateSessionFlow.collectAsState()
 
         var callMediaState by remember { mutableStateOf(CallMediaState()) }
@@ -68,9 +70,17 @@ fun VideoCallScreen() {
                     .show()
                 exitProcess(0)
             }
-
             else -> Unit
         }
+
+        if (!remoteVideoTrackEnabledState.value) {
+            Toast.makeText(context, "Your caller disabled the camera", Toast.LENGTH_SHORT)
+                .show()
+            remoteVideoTrack?.setEnabled(false)
+        } else {
+            remoteVideoTrack?.setEnabled(true)
+        }
+
 
         if (remoteVideoTrack != null) {
             VideoRenderer(
@@ -81,7 +91,7 @@ fun VideoCallScreen() {
             )
         }
 
-        if (localVideoTrack != null) {
+        if (localVideoTrack != null && callMediaState.isCameraEnabled) {
             FloatingVideoRenderer(
                 modifier = Modifier
                     .size(width = 150.dp, height = 210.dp)
@@ -110,8 +120,10 @@ fun VideoCallScreen() {
 
                     is CallAction.ToggleCamera -> {
                         val enabled = callMediaState.isCameraEnabled.not()
+                        val cameraState = if (enabled) CameraState.ENABLED.toString() else CameraState.DISABLED.toString()
                         callMediaState = callMediaState.copy(isCameraEnabled = enabled)
                         sessionManager.enableCamera(enabled)
+                        sessionManager.peerConnection.sendData(CameraState::name.toString(), cameraState)
                     }
 
                     CallAction.FlipCamera -> sessionManager.flipCamera()

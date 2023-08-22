@@ -55,10 +55,6 @@ class AudioManagerWrapper(
         }
     }
 
-    fun enableBluetoothSco(enable: Boolean) {
-        audioManager.run { if (enable) startBluetoothSco() else stopBluetoothSco() }
-    }
-
     fun enableSpeakerphone(enable: Boolean) {
         audioManager.isSpeakerphoneOn = enable
     }

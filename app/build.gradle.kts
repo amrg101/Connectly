@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -70,4 +71,5 @@ dependencies {
     implementation("io.getstream:stream-webrtc-android:1.0.4")
     implementation("com.jakewharton.timber:timber:5.0.1")
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
 }

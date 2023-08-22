@@ -3,6 +3,8 @@ package com.amrg.connectly.webrtc.peer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.webrtc.DataChannel
 import org.webrtc.IceCandidate
 import org.webrtc.IceCandidateErrorEvent
@@ -13,6 +15,7 @@ import org.webrtc.RtpReceiver
 import org.webrtc.RtpTransceiver
 import org.webrtc.SessionDescription
 import timber.log.Timber
+import java.nio.ByteBuffer
 
 class StreamPeerConnection(
     private val coroutineScope: CoroutineScope,
@@ -22,15 +25,20 @@ class StreamPeerConnection(
     private val onIceCandidate: ((IceCandidate, StreamPeerType) -> Unit)?,
     private val onVideoTrack: ((RtpTransceiver?) -> Unit)?,
     private val onNegotiationNeeded: ((StreamPeerConnection, StreamPeerType) -> Unit)?,
+    private val onMessage: ((Message) -> Unit)?,
 ) : PeerConnection.Observer {
 
     lateinit var connection: PeerConnection
+
+    private var dataChannel: DataChannel? = null
+    private val dataChannelObserver = DataChannelObserver(::onDataMessage)
 
     private val pendingCandidateMutex = Mutex()
     private val pendingIceCandidate = mutableListOf<IceCandidate>()
 
     fun initialize(connection: PeerConnection) {
         this.connection = connection
+        initializeDataChannel()
     }
 
     suspend fun createOffer(): Result<SessionDescription> {
@@ -80,6 +88,42 @@ class StreamPeerConnection(
         return connection.addRtcIceCandidate(candidate)
     }
 
+    private fun initializeDataChannel(){
+        val init = DataChannel.Init().apply { id = 1 }
+        dataChannel = connection.createDataChannel("data", init)
+        dataChannel?.registerObserver(dataChannelObserver)
+    }
+
+    private fun onDataMessage(buffer: DataChannel.Buffer?) {
+        if (buffer == null) return
+        val data = buffer.data
+        val bytes = ByteArray(data.capacity())
+        data.get(bytes)
+        if (buffer.binary) {
+            Timber.e("Message is binary")
+        } else {
+            val message = String(bytes)
+            Timber.d("Message text: $message")
+            val parsedMessage = Json.decodeFromString<Message>(message)
+            onMessage?.invoke(parsedMessage)
+        }
+    }
+
+    fun sendData(state: String, value: String) {
+        if (dataChannel?.state() == DataChannel.State.OPEN) {
+            val dataToSend = Json.encodeToString(Message(state, value))
+            dataChannel?.send(DataChannel.Buffer(ByteBuffer.wrap(dataToSend.toByteArray()), false))
+        } else {
+            Timber.d("Sent failed: data channel not opened")
+        }
+    }
+
+    fun dispose(){
+        dataChannel?.unregisterObserver()
+        dataChannel?.dispose()
+        connection.dispose()
+    }
+
     override fun onIceCandidate(candidate: IceCandidate?) {
         if (candidate == null) return
         onIceCandidate?.invoke(candidate, type)
@@ -107,6 +151,11 @@ class StreamPeerConnection(
     override fun onTrack(transceiver: RtpTransceiver?) {
         super.onTrack(transceiver)
         onVideoTrack?.invoke(transceiver)
+    }
+
+    override fun onDataChannel(dataChannel: DataChannel?) {
+        this.dataChannel = dataChannel
+        this.dataChannel?.registerObserver(dataChannelObserver)
     }
 
     override fun onIceCandidateError(event: IceCandidateErrorEvent?) {
@@ -137,6 +186,4 @@ class StreamPeerConnection(
     override fun onRemoveStream(mediaStream: MediaStream?) {
         Timber.i("onRemoveStream, mediaStream: $mediaStream ")
     }
-
-    override fun onDataChannel(data: DataChannel?) = Unit
 }
