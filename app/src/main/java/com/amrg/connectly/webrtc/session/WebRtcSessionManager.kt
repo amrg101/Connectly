@@ -178,16 +178,21 @@ class WebRtcSessionManager(
 
     fun onSessionScreenReady() {
         setupAudio()
+        updateLocalVideoTrack()
         peerConnection.connection.addTrack(localVideoTrack)
         peerConnection.connection.addTrack(localAudioTrack)
         sessionManagerScope.launch {
-            _localVideoTrackFlow.emit(localVideoTrack)
-
             if (offer != null) {
                 sendAnswer()
             } else {
                 sendOffer()
             }
+        }
+    }
+
+    fun updateLocalVideoTrack(){
+        sessionManagerScope.launch {
+            _localVideoTrackFlow.emit(localVideoTrack)
         }
     }
 

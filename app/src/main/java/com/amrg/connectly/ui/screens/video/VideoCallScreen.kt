@@ -33,8 +33,16 @@ fun VideoCallScreen() {
 
     val sessionManager = LocalWebRtcSessionManager.current
 
+    var localVideoShown by remember { mutableStateOf(true) }
+
     LaunchedEffect(key1 = Unit) {
         sessionManager.onSessionScreenReady()
+    }
+
+    LaunchedEffect(key1 = localVideoShown) {
+        if (!localVideoShown){
+            sessionManager.updateLocalVideoTrack()
+        }
     }
 
     Box(
@@ -83,6 +91,8 @@ fun VideoCallScreen() {
                 parentBounds = parentSize,
                 paddingValues = PaddingValues(0.dp)
             )
+        } else {
+            localVideoShown = false
         }
 
         VideoCallControls(
