@@ -123,7 +123,7 @@ class WebRtcSessionManager(
 
     private var offer: String? = null
 
-     val peerConnection: StreamPeerConnection by lazy {
+    private val peerConnection: StreamPeerConnection by lazy {
         peerConnectionFactory.createStreamPeerConnection(
             sessionManagerScope,
             peerConnectionFactory.rtcConfig,
@@ -206,6 +206,10 @@ class WebRtcSessionManager(
                 sendOffer()
             }
         }
+    }
+
+    fun sendData(state: String, value: String){
+        peerConnection.sendData(state, value)
     }
 
     fun updateLocalVideoTrack(){

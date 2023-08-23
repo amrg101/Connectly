@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -17,13 +18,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.amrg.connectly.R
 import com.amrg.connectly.ui.components.VideoRenderer
+import com.amrg.connectly.ui.theme.Primary
 import com.amrg.connectly.webrtc.WebRTCSessionState
 import com.amrg.connectly.webrtc.session.LocalWebRtcSessionManager
 import kotlin.system.exitProcess
@@ -56,15 +60,15 @@ fun VideoCallScreen() {
         val localVideoTrackState by sessionManager.localVideoTrackFlow.collectAsState(null)
         val localVideoTrack = localVideoTrackState
 
-        val remoteVideoTrackEnabledState =  sessionManager.remoteVideoTrackEnabledState.collectAsState()
+        val remoteVideoTrackEnabledState by sessionManager.remoteVideoTrackEnabledState.collectAsState()
 
-        val sessionState = sessionManager.signalingClient.stateSessionFlow.collectAsState()
+        val sessionState by sessionManager.signalingClient.stateSessionFlow.collectAsState()
 
         var callMediaState by remember { mutableStateOf(CallMediaState()) }
 
         val context = LocalContext.current
 
-        when (sessionState.value) {
+        when (sessionState) {
             WebRTCSessionState.Impossible, WebRTCSessionState.Offline -> {
                 Toast.makeText(context, stringResource(R.string.call_ended), Toast.LENGTH_SHORT)
                     .show()
@@ -73,22 +77,25 @@ fun VideoCallScreen() {
             else -> Unit
         }
 
-        if (!remoteVideoTrackEnabledState.value) {
-            Toast.makeText(context, "Your caller disabled the camera", Toast.LENGTH_SHORT)
-                .show()
-            remoteVideoTrack?.setEnabled(false)
-        } else {
-            remoteVideoTrack?.setEnabled(true)
-        }
-
-
-        if (remoteVideoTrack != null) {
+        if (remoteVideoTrack != null && remoteVideoTrackEnabledState) {
             VideoRenderer(
                 videoTrack = remoteVideoTrack,
                 modifier = Modifier
                     .fillMaxSize()
                     .onSizeChanged { parentSize = it }
             )
+        } else {
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .onSizeChanged { parentSize = it }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_video_muted),
+                    contentDescription = null,
+                    tint = Primary,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
         }
 
         if (localVideoTrack != null && callMediaState.isCameraEnabled) {
@@ -123,7 +130,7 @@ fun VideoCallScreen() {
                         val cameraState = if (enabled) CameraState.ENABLED.toString() else CameraState.DISABLED.toString()
                         callMediaState = callMediaState.copy(isCameraEnabled = enabled)
                         sessionManager.enableCamera(enabled)
-                        sessionManager.peerConnection.sendData(CameraState::name.toString(), cameraState)
+                        sessionManager.sendData(CameraState::name.toString(), cameraState)
                     }
 
                     CallAction.FlipCamera -> sessionManager.flipCamera()
