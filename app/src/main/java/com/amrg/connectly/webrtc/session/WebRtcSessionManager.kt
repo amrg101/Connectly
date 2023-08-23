@@ -11,6 +11,8 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.core.content.getSystemService
 import com.amrg.connectly.ui.screens.video.CameraState
+import com.amrg.connectly.ui.screens.video.MicState
+import com.amrg.connectly.ui.screens.video.RemoteCallState
 import com.amrg.connectly.webrtc.SignalingClient
 import com.amrg.connectly.webrtc.SignalingCommand
 import com.amrg.connectly.webrtc.WebRTCSessionState
@@ -62,6 +64,9 @@ class WebRtcSessionManager(
 
     private val _remoteVideoTrackEnabledState = MutableStateFlow(true)
     val remoteVideoTrackEnabledState: StateFlow<Boolean> = _remoteVideoTrackEnabledState
+
+    private val _remoteAudioTrackEnabledState = MutableStateFlow(true)
+    val remoteAudioTrackEnabledState: StateFlow<Boolean> = _remoteAudioTrackEnabledState
 
     private val mediaConstraints = MediaConstraints().apply {
         mandatory.addAll(
@@ -146,7 +151,8 @@ class WebRtcSessionManager(
             },
             onMessage = { (state, value) ->
                when(state){
-                   CameraState::name.toString() -> handleCameraStateMessage(value)
+                   RemoteCallState.CAMERA_STATE.name -> handleCameraStateMessage(value)
+                   RemoteCallState.MIC_STATE.name -> handleMicStateMessage(value)
                }
             }
         )
@@ -169,6 +175,13 @@ class WebRtcSessionManager(
         when(CameraState.valueOf(value)){
             CameraState.ENABLED ->  _remoteVideoTrackEnabledState.value = true
             CameraState.DISABLED ->  _remoteVideoTrackEnabledState.value = false
+        }
+    }
+
+    private fun handleMicStateMessage(value: String){
+        when(MicState.valueOf(value)){
+            MicState.ENABLED ->  _remoteAudioTrackEnabledState.value = true
+            MicState.DISABLED ->  _remoteAudioTrackEnabledState.value = false
         }
     }
 

@@ -5,7 +5,17 @@ data class CallMediaState(
     val isMicrophoneEnabled: Boolean = true
 )
 
+enum class RemoteCallState{
+    CAMERA_STATE,
+    MIC_STATE
+}
+
 enum class CameraState {
+    ENABLED,
+    DISABLED
+}
+
+enum class MicState {
     ENABLED,
     DISABLED
 }

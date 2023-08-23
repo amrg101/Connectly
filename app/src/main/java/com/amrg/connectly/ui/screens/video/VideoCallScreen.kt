@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -18,7 +19,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -61,6 +61,7 @@ fun VideoCallScreen() {
         val localVideoTrack = localVideoTrackState
 
         val remoteVideoTrackEnabledState by sessionManager.remoteVideoTrackEnabledState.collectAsState()
+        val remoteAudioTrackEnabledState by sessionManager.remoteAudioTrackEnabledState.collectAsState()
 
         val sessionState by sessionManager.signalingClient.stateSessionFlow.collectAsState()
 
@@ -112,6 +113,20 @@ fun VideoCallScreen() {
             localVideoShown = false
         }
 
+        if (!remoteAudioTrackEnabledState){
+            Box(modifier = Modifier
+                .padding(24.dp)
+                .size(40.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_mute_mic),
+                    contentDescription = null,
+                    tint = Primary,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        }
+
         VideoCallControls(
             modifier = Modifier
                 .fillMaxWidth()
@@ -121,8 +136,10 @@ fun VideoCallScreen() {
                 when (action) {
                     is CallAction.ToggleMicroPhone -> {
                         val enabled = callMediaState.isMicrophoneEnabled.not()
+                        val micState = if (enabled) MicState.ENABLED.toString() else MicState.DISABLED.toString()
                         callMediaState = callMediaState.copy(isMicrophoneEnabled = enabled)
                         sessionManager.enableMicrophone(enabled)
+                        sessionManager.sendData(RemoteCallState.MIC_STATE.name, micState)
                     }
 
                     is CallAction.ToggleCamera -> {
@@ -130,7 +147,7 @@ fun VideoCallScreen() {
                         val cameraState = if (enabled) CameraState.ENABLED.toString() else CameraState.DISABLED.toString()
                         callMediaState = callMediaState.copy(isCameraEnabled = enabled)
                         sessionManager.enableCamera(enabled)
-                        sessionManager.sendData(CameraState::name.toString(), cameraState)
+                        sessionManager.sendData(RemoteCallState.CAMERA_STATE.name, cameraState)
                     }
 
                     CallAction.FlipCamera -> sessionManager.flipCamera()
