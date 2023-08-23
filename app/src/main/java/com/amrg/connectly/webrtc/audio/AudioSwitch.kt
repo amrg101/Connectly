@@ -99,11 +99,9 @@ class AudioSwitch(
 
     private fun activate(audioDevice: AudioDevice) {
         when (audioDevice) {
-            is AudioDevice.BluetoothHeadset -> audioManager.enableSpeakerphone(false)
-            is AudioDevice.Earpiece, is AudioDevice.WiredHeadset -> audioManager.enableSpeakerphone(
-                false
-            )
-
+            is AudioDevice.BluetoothHeadset -> audioManager.enableSpeakerphone(true)
+            is AudioDevice.Earpiece -> audioManager.enableSpeakerphone(true)
+            is AudioDevice.WiredHeadset -> audioManager.enableSpeakerphone(false)
             is AudioDevice.Speakerphone -> audioManager.enableSpeakerphone(true)
         }
     }
