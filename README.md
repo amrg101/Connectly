@@ -21,7 +21,7 @@ The purpose of this repository is to demonstrate below:
 - [Stream WebRTC Android](https://github.com/GetStream/stream-webrtc-android): A WebRTC pre-compiled library for Android reflects the recent WebRTC updates and supports functional UI components and extensions for Android and Jetpack Compose.
 - [Retrofit2 & OkHttp3](https://github.com/square/retrofit): Construct the REST APIs and paging network data.
 - [Ktor](https://github.com/ktorio/ktor): Building a signaling client websocket server.
-
+- [Render](https://render.com/): Deploing the signaling server on cloud hosting with the help of Docker.
 
 # License
 ```xml
