@@ -12,16 +12,14 @@ The purpose of this repository is to demonstrate below:
 
 <p align="center">
 <img src="previews/preview0.png" alt="drawing" width="273" />
-<img src="previews/preview1.png" alt="drawing" width="273" />
 </p>
 
 ## 🛠 Tech Stacks & Open Source Libraries
-- Minimum SDK level 23.
+- Minimum SDK level 24.
 - 100% [Jetpack Compose](https://developer.android.com/jetpack/compose) based + [Coroutines](https://github.com/Kotlin/kotlinx.coroutines) + [Flow](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/) for asynchronous.
 - [WebRTC](https://webrtc.org/): To build real-time communication capabilities to your application that works on top of an open standard.
 - [Stream WebRTC Android](https://github.com/GetStream/stream-webrtc-android): A WebRTC pre-compiled library for Android reflects the recent WebRTC updates and supports functional UI components and extensions for Android and Jetpack Compose.
 - [Retrofit2 & OkHttp3](https://github.com/square/retrofit): Construct the REST APIs and paging network data.
-- [StreamLog](https://github.com/GetStream/stream-log): A lightweight and extensible logger library for Kotlin and Android.
 - [Ktor](https://github.com/ktorio/ktor): Building a signaling client websocket server.
 
 
